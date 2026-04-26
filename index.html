@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FuelIQ Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0e0f0d;--panel:#141512;--panel2:#1a1c18;--border:#252720;--border2:#2e3128;
+  --accent:#c8f04a;--accent-dim:#8aaa2a;--accent-glow:rgba(200,240,74,0.12);
+  --red:#ff6b5b;--red-dim:rgba(255,107,91,0.12);--amber:#f0a040;--amber-dim:rgba(240,160,64,0.12);
+  --green:#4ade80;--green-dim:rgba(74,222,128,0.10);
+  --text:#e8ead4;--text2:#8a8e78;--text3:#4a4e3c;
+}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding-bottom:80px;
+  background-image:radial-gradient(ellipse 60% 30% at 70% 0%,rgba(200,240,74,0.04) 0%,transparent 60%);}
+
+/* ── SETUP BANNER ── */
+#setup-banner{
+  background:linear-gradient(135deg,#1a1200,#1a0e00);
+  border-bottom:1px solid var(--amber);
+  padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px;
+}
+#setup-banner p{font-size:0.78rem;color:var(--amber);line-height:1.5;}
+#setup-banner strong{display:block;font-size:0.85rem;margin-bottom:2px;}
+.btn-config{
+  flex-shrink:0;padding:8px 16px;background:var(--amber);color:#0e0f0d;
+  border:none;border-radius:6px;font-family:'DM Mono',monospace;font-size:0.65rem;
+  font-weight:500;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap;
+}
+.btn-config:hover{opacity:0.88;}
+
+/* ── TOPBAR ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);background:rgba(14,15,13,0.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;}
+.logo{display:flex;align-items:baseline;gap:6px;}
+.logo-text{font-family:'DM Serif Display',serif;font-size:1.6rem;color:var(--text);letter-spacing:-0.02em;}
+.logo-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;margin-bottom:2px;flex-shrink:0;}
+.logo-sub{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text2);letter-spacing:0.2em;text-transform:uppercase;margin-left:4px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.sync-status{font-family:'DM Mono',monospace;font-size:0.6rem;color:var(--text3);letter-spacing:0.1em;display:flex;align-items:center;gap:5px;}
+.sync-dot{width:6px;height:6px;border-radius:50%;background:var(--text3);}
+.sync-dot.ok{background:var(--green);}
+.sync-dot.busy{background:var(--amber);animation:pulse 1s infinite;}
+.sync-dot.err{background:var(--red);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.btn-settings{background:none;border:1px solid var(--border2);color:var(--text2);padding:7px 12px;border-radius:6px;font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.08em;cursor:pointer;text-transform:uppercase;transition:all 0.2s;}
+.btn-settings:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ── STRIP ── */
+.strip{display:grid;grid-template-columns:repeat(4,1fr);border-bottom:1px solid var(--border);background:var(--panel);}
+.strip-item{padding:16px 24px;border-right:1px solid var(--border);}
+.strip-item:last-child{border-right:none;}
+.strip-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;}
+.strip-val{font-family:'DM Serif Display',serif;font-size:1.5rem;color:var(--text);line-height:1;}
+.strip-val.hi{color:var(--accent);}
+.strip-unit{font-family:'DM Mono',monospace;font-size:0.65rem;color:var(--text2);margin-left:3px;}
+
+/* ── LAYOUT ── */
+.main{max-width:980px;margin:0 auto;padding:28px 24px;display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;}
+
+/* ── FORM ── */
+.form-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;position:sticky;top:74px;}
+.form-head{padding:14px 20px;background:var(--accent);display:flex;align-items:center;gap:8px;}
+.form-head h2{font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.15em;text-transform:uppercase;color:#0e0f0d;font-weight:500;}
+.form-body{padding:20px;}
+.field{margin-bottom:14px;}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+label{display:block;font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--text2);margin-bottom:6px;}
+.inp{display:flex;align-items:stretch;background:var(--panel2);border:1px solid var(--border2);border-radius:7px;overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;}
+.inp:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+.inp input,.inp select{flex:1;background:transparent;border:none;outline:none;font-family:'DM Mono',monospace;font-size:0.88rem;color:var(--text);padding:9px 12px;min-width:0;}
+.inp input[type="date"],.inp input[type="text"],.inp select{font-family:'DM Sans',sans-serif;font-size:0.85rem;}
+.inp select option{background:var(--panel2);}
+.inp-unit{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);padding:0 10px;background:var(--panel);border-left:1px solid var(--border2);display:flex;align-items:center;white-space:nowrap;}
+.divider{height:1px;background:var(--border);margin:16px 0;}
+.form-section{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent-dim);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.form-section::after{content:'';flex:1;height:1px;background:var(--border);}
+.btn-add{width:100%;padding:12px;margin-top:4px;background:var(--accent);color:#0e0f0d;border:none;border-radius:7px;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;transition:opacity 0.15s,transform 0.1s;position:relative;}
+.btn-add:hover{opacity:0.88;}
+.btn-add:active{transform:scale(0.98);}
+.btn-add:disabled{opacity:0.5;cursor:not-allowed;}
+
+/* ── LOG ── */
+.log-head{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+.log-head::after{content:'';flex:1;height:1px;background:var(--border);}
+.chart-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;}
+.chart-lbl{font-family:'DM Mono',monospace;font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--text2);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+.chart-wrap{height:100px;position:relative;}
+canvas{width:100%!important;height:100%!important;}
+.empty{background:var(--panel);border:1px dashed var(--border2);border-radius:12px;padding:48px 24px;text-align:center;}
+.empty strong{display:block;font-family:'DM Serif Display',serif;font-size:1.2rem;color:var(--text2);margin-bottom:8px;}
+.empty p{font-size:0.82rem;color:var(--text3);line-height:1.7;}
+
+/* ── ENTRY ── */
+.entry{background:var(--panel);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;animation:rise 0.2s ease;}
+@keyframes rise{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
+.entry-top{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;border-bottom:1px solid var(--border);background:var(--panel2);}
+.entry-date{font-family:'DM Serif Display',serif;font-size:1rem;color:var(--text);}
+.entry-badges{display:flex;align-items:center;gap:6px;margin-top:3px;flex-wrap:wrap;}
+.badge{font-family:'DM Mono',monospace;font-size:0.58rem;padding:2px 8px;border-radius:4px;}
+.badge-grade{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(200,240,74,0.2);}
+.badge-brand{background:var(--panel);color:var(--text2);border:1px solid var(--border2);}
+.entry-num{font-family:'DM Mono',monospace;font-size:0.58rem;color:var(--text3);}
+.btn-del{background:none;border:none;cursor:pointer;color:var(--text3);padding:4px 8px;border-radius:4px;font-size:0.8rem;transition:color 0.15s,background 0.15s;line-height:1;}
+.btn-del:hover{color:var(--red);background:var(--red-dim);}
+.entry-stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border);}
+.es{padding:10px 14px;border-right:1px solid var(--border);text-align:center;}
+.es:last-child{border-right:none;}
+.es-lbl{font-family:'DM Mono',monospace;font-size:0.52rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;}
+.es-val{font-family:'DM Mono',monospace;font-size:0.9rem;font-weight:500;color:var(--text);}
+.entry-results{display:grid;grid-template-columns:repeat(4,1fr);}
+.er{padding:10px 12px;border-right:1px solid var(--border);text-align:center;}
+.er:last-child{border-right:none;}
+.er-lbl{font-family:'DM Mono',monospace;font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text2);margin-bottom:4px;}
+.er-val{font-family:'DM Serif Display',serif;font-size:1.1rem;color:var(--text);}
+.er-val.good{color:var(--green);}
+.er-val.warn{color:var(--amber);}
+.er-val.bad{color:var(--red);}
+.entry-verdict{padding:8px 16px;font-size:0.72rem;font-weight:500;border-top:1px solid var(--border);}
+.vg{background:var(--green-dim);color:var(--green);}
+.vw{background:var(--amber-dim);color:var(--amber);}
+.vb{background:var(--red-dim);color:var(--red);}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:var(--panel);border:1px solid var(--border2);border-radius:14px;width:100%;max-width:480px;overflow:hidden;}
+.modal-head{padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.modal-head h3{font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);}
+.modal-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:1.1rem;padding:2px 8px;border-radius:4px;}
+.modal-close:hover{color:var(--text);}
+.modal-body{padding:22px;}
+.modal-body p{font-size:0.82rem;color:var(--text2);line-height:1.6;margin-bottom:16px;}
+.modal-body label{color:var(--text2);margin-bottom:6px;}
+.modal-body .inp{margin-bottom:12px;}
+.modal-body .inp input{font-family:'DM Sans',sans-serif;font-size:0.85rem;}
+.btn-save{width:100%;padding:12px;background:var(--accent);color:#0e0f0d;border:none;border-radius:7px;font-family:'DM Mono',monospace;font-size:0.72rem;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;margin-top:4px;}
+.btn-save:hover{opacity:0.88;}
+.url-hint{font-size:0.7rem;color:var(--text3);margin-top:8px;line-height:1.5;}
+
+/* ── LOADING ── */
+.loading{display:flex;align-items:center;justify-content:center;gap:10px;padding:40px;color:var(--text2);font-family:'DM Mono',monospace;font-size:0.72rem;letter-spacing:0.1em;}
+.spinner{width:16px;height:16px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+@media(max-width:740px){
+  .main{grid-template-columns:1fr;padding:16px;}
+  .form-card{position:static;}
+  .strip{grid-template-columns:1fr 1fr;}
+  .strip-item:nth-child(2){border-right:none;}
+  .strip-item:nth-child(3){border-top:1px solid var(--border);}
+  .strip-item:nth-child(4){border-top:1px solid var(--border);border-right:none;}
+  .entry-stats{grid-template-columns:1fr 1fr;}
+  .es:nth-child(2){border-right:none;}
+  .es:nth-child(3){border-top:1px solid var(--border);border-right:none;grid-column:1/-1;}
+  .entry-results{grid-template-columns:1fr 1fr;}
+  .er:nth-child(2){border-right:none;}
+  .er:nth-child(3){border-top:1px solid var(--border);}
+  .er:nth-child(4){border-top:1px solid var(--border);border-right:none;}
+  #setup-banner{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<!-- Setup banner (shown until URL is configured) -->
+<div id="setup-banner" style="display:none">
+  <p><strong>⚠ Google Sheets not connected</strong>Follow the setup guide (README) to connect your spreadsheet, then paste your Apps Script URL below.</p>
+  <button class="btn-config" onclick="openModal()">Connect Sheets</button>
+</div>
+
+<div class="topbar">
+  <div class="logo">
+    <span class="logo-text">FuelIQ</span>
+    <div class="logo-dot"></div>
+    <span class="logo-sub">Tracker</span>
+  </div>
+  <div class="topbar-right">
+    <div class="sync-status">
+      <div class="sync-dot" id="sync-dot"></div>
+      <span id="sync-label">not connected</span>
+    </div>
+    <button class="btn-settings" onclick="openModal()">⚙ Settings</button>
+  </div>
+</div>
+
+<div class="strip">
+  <div class="strip-item"><div class="strip-lbl">Total Fills</div><div class="strip-val" id="s-fills">—</div></div>
+  <div class="strip-item"><div class="strip-lbl">Total Spent</div><div class="strip-val hi" id="s-spent">—</div></div>
+  <div class="strip-item"><div class="strip-lbl">Avg Efficiency</div><div class="strip-val" id="s-eff">—<span class="strip-unit">km/L</span></div></div>
+  <div class="strip-item"><div class="strip-lbl">Avg vs Rated</div><div class="strip-val" id="s-vs">—</div></div>
+</div>
+
+<div class="main">
+  <div class="form-card">
+    <div class="form-head">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#0e0f0d" stroke-width="2.5" stroke-linecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+      <h2>Log a Fill-Up</h2>
+    </div>
+    <div class="form-body">
+      <div class="field"><label>Date of Fill</label><div class="inp"><input type="date" id="f-date"></div></div>
+      <div class="field-row">
+        <div class="field"><label>Grade</label><div class="inp"><select id="f-grade"><option value="">—</option><option>93</option><option>95</option><option>E10</option><option>Diesel</option><option>Premium Diesel</option></select></div></div>
+        <div class="field"><label>Station</label><div class="inp"><input type="text" id="f-brand" placeholder="e.g. Shell"></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-section">Pump</div>
+      <div class="field-row">
+        <div class="field"><label>Price / Litre</label><div class="inp"><input type="number" id="f-price" placeholder="0.00" min="0" step="0.01"></div></div>
+        <div class="field"><label>Litres Pumped</label><div class="inp"><input type="number" id="f-litres" placeholder="0.0" min="0" step="0.1"><span class="inp-unit">L</span></div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="form-section">Range</div>
+      <div class="field"><label>Range shown after this fill ↑</label><div class="inp"><input type="number" id="f-range-after" placeholder="e.g. 580" min="0"><span class="inp-unit">km</span></div></div>
+      <div class="field"><label>Range shown just before this fill ↓</label><div class="inp"><input type="number" id="f-range-before" placeholder="e.g. 65" min="0"><span class="inp-unit">km</span></div></div>
+      <div class="divider"></div>
+      <div class="form-section">Distance</div>
+      <div class="field"><label>km Driven since last fill</label><div class="inp"><input type="number" id="f-km" placeholder="e.g. 490" min="0"><span class="inp-unit">km</span></div></div>
+      <button class="btn-add" id="btn-add" onclick="addEntry()">+ Add Fill-Up</button>
+    </div>
+  </div>
+
+  <div class="log-col">
+    <div class="chart-card" id="chart-card" style="display:none">
+      <div class="chart-lbl"><span>Efficiency vs Rated — over time</span><span style="color:var(--accent);font-family:'DM Mono',monospace;font-size:0.65rem;" id="chart-avg">—</span></div>
+      <div class="chart-wrap"><canvas id="eff-chart"></canvas></div>
+    </div>
+    <div class="log-head">Fill-Up History</div>
+    <div id="log-list"><div class="loading"><div class="spinner"></div>Loading from Google Sheets…</div></div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Connect Google Sheets</h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p>Paste your <strong style="color:var(--text)">Google Apps Script Web App URL</strong> below. Follow the <strong style="color:var(--text)">README</strong> in your GitHub repo for step-by-step setup instructions.</p>
+      <label>Apps Script Web App URL</label>
+      <div class="inp"><input type="text" id="script-url" placeholder="https://script.google.com/macros/s/…/exec"></div>
+      <p class="url-hint">This URL connects FuelIQ to your Google Sheet. It's saved in your browser — you only need to do this once per device.</p>
+      <button class="btn-save" onclick="saveUrl()">Save & Connect</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Config ───────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'fueliq_script_url';
+let SCRIPT_URL = localStorage.getItem(STORAGE_KEY) || '';
+let entries = [];
+
+const $ = id => document.getElementById(id);
+const fmt = (n,d=1) => isNaN(n)||n===null?'—':Number(n).toFixed(d);
+const curr = n => isNaN(n)?'—':Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtDate = iso => { if(!iso)return'—'; return new Date(iso+'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); };
+
+// ── Sync status ───────────────────────────────────────────────────────────────
+function setSync(state, label){
+  const dot=$('sync-dot'), lbl=$('sync-label');
+  dot.className='sync-dot '+(state==='ok'?'ok':state==='busy'?'busy':'err');
+  lbl.textContent=label;
+}
+
+// ── Calculations ──────────────────────────────────────────────────────────────
+function calc(e){
+  const totalCost = e.price * e.litres;
+  const theoUsed  = (e.rangeAfter && e.rangeBefore!=null) ? e.rangeAfter - e.rangeBefore : null;
+  const effRatio  = (theoUsed && theoUsed>0 && e.km>0) ? e.km/theoUsed : null;
+  const effPct    = effRatio!==null ? (effRatio-1)*100 : null;
+  const realKmL   = (e.litres>0 && e.km>0) ? e.km/e.litres : null;
+  const ratedKmL  = (e.litres>0 && theoUsed>0) ? theoUsed/e.litres : null;
+  const costPerKm = (e.km>0) ? totalCost/e.km : null;
+  return{totalCost,theoUsed,effRatio,effPct,realKmL,ratedKmL,costPerKm};
+}
+function vc(pct){ return pct===null?'na':pct>=-5?'good':pct>=-15?'warn':'bad'; }
+function vt(pct,realKmL){
+  if(pct===null) return '— Efficiency will appear from your 2nd fill onwards.';
+  const sign=pct>=0?'+':'';
+  if(pct>=-5)  return `✓ Excellent — ${fmt(realKmL)} km/L · ${sign}${fmt(pct,0)}% vs rated.`;
+  if(pct>=-15) return `⚠ Moderate — ${fmt(realKmL)} km/L · ${sign}${fmt(pct,0)}% vs rated. Check tyres.`;
+  return `✕ Poor — ${fmt(realKmL)} km/L · ${sign}${fmt(pct,0)}% vs rated. Consider a service.`;
+}
+
+// ── API calls ─────────────────────────────────────────────────────────────────
+async function fetchEntries(){
+  if(!SCRIPT_URL){ showNoUrl(); return; }
+  setSync('busy','loading…');
+  try{
+    const res = await fetch(SCRIPT_URL+'?action=get');
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+    entries = data.entries || [];
+    setSync('ok','synced');
+    render();
+  }catch(e){
+    setSync('err','connection error');
+    showError('Could not load data from Google Sheets. Check your Apps Script URL in Settings.');
+  }
+}
+
+async function saveEntry(entry){
+  const res = await fetch(SCRIPT_URL, {
+    method:'POST',
+    body: JSON.stringify({action:'add', entry})
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+  return data.entry;
+}
+
+async function deleteEntry(id){
+  const res = await fetch(SCRIPT_URL, {
+    method:'POST',
+    body: JSON.stringify({action:'delete', id})
+  });
+  const data = await res.json();
+  if(data.error) throw new Error(data.error);
+}
+
+// ── UI ────────────────────────────────────────────────────────────────────────
+function showNoUrl(){
+  $('setup-banner').style.display='flex';
+  $('log-list').innerHTML=`<div class="empty"><strong>Not connected yet</strong><p>Paste your Google Apps Script URL in Settings<br>to start saving your fill-ups to Google Sheets.</p></div>`;
+  setSync('err','not connected');
+  updateStrip([]);
+}
+
+function showError(msg){
+  $('log-list').innerHTML=`<div class="empty"><strong>Connection error</strong><p>${msg}</p></div>`;
+  updateStrip([]);
+}
+
+function render(){
+  $('setup-banner').style.display='none';
+  const list=$('log-list');
+  if(!entries.length){
+    list.innerHTML=`<div class="empty"><strong>No fills logged yet</strong><p>After your first fill, note the range your<br>dashboard shows — that's all you need.</p></div>`;
+    $('chart-card').style.display='none';
+    updateStrip([]);return;
+  }
+  list.innerHTML='';
+  const sorted=[...entries].sort((a,b)=>b.date.localeCompare(a.date));
+  sorted.forEach(e=>{
+    const c=calc(e); const v=vc(c.effPct);
+    const cc=v==='good'?'good':v==='warn'?'warn':'bad';
+    const card=document.createElement('div'); card.className='entry';
+    const effVsRated=c.effPct!==null
+      ?`<span class="er-val ${cc}">${c.effPct>=0?'+':''}${fmt(c.effPct,0)}%</span>`
+      :`<span class="er-val" style="color:var(--text3);font-size:0.75rem">2nd fill+</span>`;
+    card.innerHTML=`
+      <div class="entry-top">
+        <div>
+          <div class="entry-date">${fmtDate(e.date)}</div>
+          <div class="entry-badges">
+            ${e.grade?`<span class="badge badge-grade">${e.grade}</span>`:''}
+            ${e.brand?`<span class="badge badge-brand">${e.brand}</span>`:''}
+            <span class="entry-num">Fill #${entries.length-entries.indexOf(e)}</span>
+          </div>
+        </div>
+        <button class="btn-del" onclick="del('${e.id}')">✕</button>
+      </div>
+      <div class="entry-stats">
+        <div class="es"><div class="es-lbl">Price / L</div><div class="es-val">${curr(e.price)}</div></div>
+        <div class="es"><div class="es-lbl">Litres</div><div class="es-val">${fmt(e.litres,1)} L</div></div>
+        <div class="es"><div class="es-lbl">km Driven</div><div class="es-val">${e.km>0?Math.round(e.km)+' km':'—'}</div></div>
+      </div>
+      <div class="entry-results">
+        <div class="er"><div class="er-lbl">Total Cost</div><div class="er-val">${curr(c.totalCost)}</div></div>
+        <div class="er"><div class="er-lbl">Real km/L</div><div class="er-val ${c.realKmL?cc:''}">${c.realKmL?fmt(c.realKmL):'—'}</div></div>
+        <div class="er"><div class="er-lbl">vs Rated</div>${effVsRated}</div>
+        <div class="er"><div class="er-lbl">Cost / km</div><div class="er-val">${c.costPerKm?curr(c.costPerKm):'—'}</div></div>
+      </div>
+      <div class="entry-verdict v${v==='na'?'w':v[0]}">${vt(c.effPct,c.realKmL)}</div>`;
+    list.appendChild(card);
+  });
+  updateStrip(entries);
+  renderChart(sorted);
+}
+
+function updateStrip(arr){
+  if(!arr.length){['s-fills','s-spent','s-eff','s-vs'].forEach(id=>$(id).textContent='—');return;}
+  const calcs=arr.map(calc);
+  const spent=calcs.reduce((s,c)=>s+c.totalCost,0);
+  const effArr=calcs.filter(c=>c.realKmL).map(c=>c.realKmL);
+  const vsArr=calcs.filter(c=>c.effPct!==null).map(c=>c.effPct);
+  const avgEff=effArr.length?effArr.reduce((a,b)=>a+b,0)/effArr.length:null;
+  const avgVs=vsArr.length?vsArr.reduce((a,b)=>a+b,0)/vsArr.length:null;
+  $('s-fills').textContent=arr.length;
+  $('s-spent').textContent=curr(spent);
+  $('s-eff').innerHTML=avgEff?`${fmt(avgEff)} <span class="strip-unit">km/L</span>`:'—';
+  const vsEl=$('s-vs');
+  if(avgVs!==null){vsEl.textContent=(avgVs>=0?'+':'')+fmt(avgVs,0)+'%';vsEl.style.color=avgVs>=-5?'var(--green)':avgVs>=-15?'var(--amber)':'var(--red)';}
+  else{vsEl.textContent='—';vsEl.style.color='';}
+}
+
+function renderChart(sorted){
+  const withEff=sorted.filter(e=>calc(e).effPct!==null);
+  if(withEff.length<2){$('chart-card').style.display='none';return;}
+  $('chart-card').style.display='block';
+  const data=[...withEff].reverse().map(e=>({d:fmtDate(e.date),v:+calc(e).effPct.toFixed(1)}));
+  const avg=data.reduce((s,d)=>s+d.v,0)/data.length;
+  $('chart-avg').textContent=(avg>=0?'+':'')+avg.toFixed(1)+'% avg';
+  const canvas=$('eff-chart'); const ctx=canvas.getContext('2d');
+  canvas.width=canvas.offsetWidth*devicePixelRatio; canvas.height=canvas.offsetHeight*devicePixelRatio;
+  ctx.scale(devicePixelRatio,devicePixelRatio);
+  const W=canvas.offsetWidth,H=canvas.offsetHeight;
+  const pad={t:6,r:8,b:24,l:42}; const cw=W-pad.l-pad.r,ch=H-pad.t-pad.b;
+  const vals=data.map(d=>d.v); const minV=Math.min(...vals,-20),maxV=Math.max(...vals,5);
+  const yS=v=>pad.t+ch-((v-minV)/(maxV-minV))*ch; const xS=i=>pad.l+(i/(data.length-1||1))*cw;
+  ctx.clearRect(0,0,W,H);
+  const zeroY=yS(0); ctx.strokeStyle='rgba(200,240,74,0.15)';ctx.lineWidth=1;ctx.setLineDash([4,4]);
+  ctx.beginPath();ctx.moveTo(pad.l,zeroY);ctx.lineTo(pad.l+cw,zeroY);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='rgba(200,240,74,0.4)';ctx.font=`500 9px 'DM Mono',monospace`;ctx.textAlign='right';ctx.fillText('rated',pad.l-4,zeroY+3);
+  if(data.length>1){
+    const grad=ctx.createLinearGradient(0,pad.t,0,pad.t+ch);
+    grad.addColorStop(0,'rgba(200,240,74,0.12)');grad.addColorStop(1,'rgba(200,240,74,0)');
+    ctx.beginPath();data.forEach((d,i)=>i===0?ctx.moveTo(xS(i),yS(d.v)):ctx.lineTo(xS(i),yS(d.v)));
+    ctx.lineTo(xS(data.length-1),pad.t+ch);ctx.lineTo(xS(0),pad.t+ch);ctx.closePath();
+    ctx.fillStyle=grad;ctx.fill();
+  }
+  ctx.beginPath();ctx.strokeStyle='#c8f04a';ctx.lineWidth=2;ctx.lineJoin='round';
+  data.forEach((d,i)=>i===0?ctx.moveTo(xS(i),yS(d.v)):ctx.lineTo(xS(i),yS(d.v)));ctx.stroke();
+  data.forEach((d,i)=>{
+    const x=xS(i),y=yS(d.v),col=d.v>=-5?'#4ade80':d.v>=-15?'#f0a040':'#ff6b5b';
+    ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle=col;ctx.fill();
+    if(data.length<=8){ctx.fillStyle='#4a4e3c';ctx.font=`400 8px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillText(d.d,x,pad.t+ch+16);}
+  });
+}
+
+// ── Add / Delete ──────────────────────────────────────────────────────────────
+async function addEntry(){
+  if(!SCRIPT_URL){openModal();return;}
+  const date=$('f-date').value, grade=$('f-grade').value, brand=$('f-brand').value.trim();
+  const price=parseFloat($('f-price').value), litres=parseFloat($('f-litres').value);
+  const rangeAfter=parseFloat($('f-range-after').value), rangeBefore=parseFloat($('f-range-before').value)||0;
+  const km=parseFloat($('f-km').value)||0;
+  if(!date){alert('Please select a date.');return;}
+  if(isNaN(price)||price<=0||isNaN(litres)||litres<=0){alert('Price and litres are required.');return;}
+  if(isNaN(rangeAfter)||rangeAfter<=0){alert('Please enter the range shown after this fill.');return;}
+  const btn=$('btn-add'); btn.disabled=true; btn.textContent='Saving…';
+  setSync('busy','saving…');
+  try{
+    const entry={id:Date.now().toString(),date,grade,brand,price,litres,rangeAfter,rangeBefore,km};
+    const saved=await saveEntry(entry);
+    entries.push(saved||entry);
+    setSync('ok','saved');
+    render();
+    ['f-price','f-litres','f-range-after','f-range-before','f-km'].forEach(id=>$(id).value='');
+    $('f-grade').value='';$('f-brand').value='';
+  }catch(e){
+    setSync('err','save failed');
+    alert('Could not save to Google Sheets. Check your connection and Apps Script URL.');
+  }
+  btn.disabled=false; btn.textContent='+ Add Fill-Up';
+}
+
+async function del(id){
+  if(!confirm('Remove this fill-up?'))return;
+  setSync('busy','deleting…');
+  try{
+    await deleteEntry(id);
+    entries=entries.filter(e=>e.id!==id);
+    setSync('ok','synced');
+    render();
+  }catch(e){
+    setSync('err','delete failed');
+    alert('Could not delete from Google Sheets.');
+  }
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function openModal(){ $('modal').style.display='flex'; $('script-url').value=SCRIPT_URL; }
+function closeModal(){ $('modal').style.display='none'; }
+function closeModalOutside(e){ if(e.target===$('modal'))closeModal(); }
+function saveUrl(){
+  const url=$('script-url').value.trim();
+  if(!url){alert('Please paste your Apps Script URL.');return;}
+  SCRIPT_URL=url; localStorage.setItem(STORAGE_KEY,url);
+  closeModal();
+  fetchEntries();
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+$('f-date').value=new Date().toISOString().split('T')[0];
+if(SCRIPT_URL){ fetchEntries(); }
+else{ showNoUrl(); }
+window.addEventListener('resize',()=>{
+  if(entries.length>=2) renderChart([...entries].sort((a,b)=>b.date.localeCompare(a.date)));
+});
+</script>
+</body>
+</html>
