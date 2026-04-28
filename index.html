@@ -403,8 +403,8 @@ function render(){
           </div>
         </div>
         <div class="entry-actions">
-          <button class="btn-act btn-edit" data-id="${e.id}" title="Edit">✏</button>
-          <button class="btn-act btn-del" data-id="${e.id}" title="Delete">✕</button>
+          <button class="btn-act btn-edit" data-id="${String(e.id)}" title="Edit">✏</button>
+          <button class="btn-act btn-del" data-id="${String(e.id)}" title="Delete">✕</button>
         </div>
       </div>
       <div class="entry-stats">
@@ -512,14 +512,14 @@ async function del(id){
   setSync('busy','deleting…');
   try{
     await apiPost({action:'delete',id});
-    entries=entries.filter(e=>e.id!==id);
+    entries=entries.filter(e=>String(e.id)!==String(id));
     setSync('ok','synced');render();
   }catch(e){setSync('err','delete failed');alert('Could not delete. Try again.');}
 }
 
 // ── Edit ──────────────────────────────────────────────────────────────────────
 function openEdit(id){
-  const e=entries.find(x=>x.id===id);if(!e)return;
+  const e=entries.find(x=>String(x.id)===String(id));if(!e){alert('Entry not found. Try refreshing.');return;}
   $('edit-id').value=e.id;
   $('edit-date').value=toIso(e.date);
   $('edit-grade').value=e.grade||'';
