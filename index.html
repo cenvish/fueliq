@@ -297,7 +297,20 @@ let entries=[];
 const $=id=>document.getElementById(id);
 const fmt=(n,d=1)=>isNaN(n)||n===null?'—':Number(n).toFixed(d);
 const curr=n=>isNaN(n)?'—':Number(n).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-const fmtDate=iso=>{if(!iso)return'—';return new Date(iso+'T00:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});};
+function toIso(val){
+  if(!val)return'';val=val.toString().trim();
+  if(/^\d{4}-\d{2}-\d{2}$/.test(val))return val;
+  if(/^\d{2}\/\d{2}\/\d{4}$/.test(val)){const[d,m,y]=val.split('/');return y+'-'+m+'-'+d;}
+  const d=new Date(val);
+  if(!isNaN(d)){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),dd=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+dd;}
+  return val;
+}
+const fmtDate=val=>{
+  if(!val)return'—';const iso=toIso(val);if(!iso)return'—';
+  const d=new Date(iso+'T00:00:00');
+  if(isNaN(d))return val.toString();
+  return d.toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'});
+};
 
 // ── Price/L auto-calc ─────────────────────────────────────────────────────────
 function calcPpl(){
@@ -500,7 +513,7 @@ async function del(id){
 function openEdit(id){
   const e=entries.find(x=>x.id===id);if(!e)return;
   $('edit-id').value=e.id;
-  $('edit-date').value=e.date;
+  $('edit-date').value=toIso(e.date);
   $('edit-grade').value=e.grade||'';
   $('edit-brand').value=e.brand||'';
   $('edit-litres').value=e.litres;
