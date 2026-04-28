@@ -403,8 +403,8 @@ function render(){
           </div>
         </div>
         <div class="entry-actions">
-          <button class="btn-act btn-edit" onclick="openEdit('${e.id}')" title="Edit">✏</button>
-          <button class="btn-act btn-del" onclick="del('${e.id}')" title="Delete">✕</button>
+          <button class="btn-act btn-edit" data-id="${e.id}" title="Edit">✏</button>
+          <button class="btn-act btn-del" data-id="${e.id}" title="Delete">✕</button>
         </div>
       </div>
       <div class="entry-stats">
@@ -473,6 +473,14 @@ function renderChart(sorted){
     if(data.length<=8){ctx.fillStyle='#4a4e3c';ctx.font=`400 8px 'DM Mono',monospace`;ctx.textAlign='center';ctx.fillText(d.d,x,pad.t+ch+16);}
   });
 }
+
+// ── Event delegation for edit/delete buttons ─────────────────────────────────
+document.addEventListener('click', function(e){
+  const editBtn = e.target.closest('.btn-edit');
+  const delBtn  = e.target.closest('.btn-del');
+  if(editBtn){ const id=editBtn.getAttribute('data-id'); if(id) openEdit(id); }
+  if(delBtn){  const id=delBtn.getAttribute('data-id');  if(id) del(id); }
+});
 
 // ── Add ───────────────────────────────────────────────────────────────────────
 async function addEntry(){
